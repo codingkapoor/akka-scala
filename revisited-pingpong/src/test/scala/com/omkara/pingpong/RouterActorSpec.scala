@@ -173,7 +173,7 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
 
   }
 
-  it should "unregister routees that are unreachable for three or more times" in new ThreeRegisteredRoutees {
+  it should "unregister routees that are unreachable even after three or more times of roles reset" in new ThreeRegisteredRoutees {
     router.currentActorWithPingRole = routee1.ref
     router.repliesReceivedFrom = Set(routee2.ref)
 
@@ -185,8 +185,18 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
 
     router.unreachableMap.contains(routee3.ref) shouldEqual true
     
-    router.unreachableMap(routee3.ref) = 3
+    routerRef ! StopWatchEnded
 
+    routee1.expectMsg(UnreachableActorException(unreachable))
+
+    router.unreachableMap.contains(routee3.ref) shouldEqual true
+    
+    routerRef ! StopWatchEnded
+
+    routee1.expectMsg(UnreachableActorException(unreachable))
+
+    router.unreachableMap.contains(routee3.ref) shouldEqual true
+    
     routerRef ! ResetRoles
 
     routee1.expectMsg(PongNow)
