@@ -6,13 +6,8 @@ import com.typesafe.config.ConfigFactory
 import akka.testkit.{ TestKit, TestActorRef, ImplicitSender }
 import org.scalatest.{ FlatSpecLike, Matchers, BeforeAndAfterAll }
 
-class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec",
-  ConfigFactory.parseString("""
-      akka.loggers = ["akka.testkit.TestEventListener"]
-      akka.stdout-loglevel = "OFF"
-      akka.loglevel = "OFF"
-    """))) with ImplicitSender
-    with FlatSpecLike with Matchers with BeforeAndAfterAll {
+class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
+    with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
   import MasterActor._
   import RouterActor._
 

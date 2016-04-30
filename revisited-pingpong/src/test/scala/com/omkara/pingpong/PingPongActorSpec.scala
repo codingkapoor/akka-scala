@@ -10,16 +10,8 @@ import akka.actor.ActorSystem
 import akka.testkit.{ ImplicitSender, TestFSMRef, TestKit }
 import org.scalatest.{ BeforeAndAfterAll, Matchers, FlatSpecLike }
 
-class PingPongActorSpec extends TestKit(ActorSystem("PingPongActorSpec",
-  ConfigFactory.parseString("""
-      akka.loggers = ["akka.testkit.TestEventListener"]
-      akka.stdout-loglevel = "OFF"
-      akka.loglevel = "OFF"
-    """)))
-    with ImplicitSender
-    with FlatSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class PingPongActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
+    with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
   import PingPongActor._
   import RouterActor._
 

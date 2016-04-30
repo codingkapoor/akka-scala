@@ -6,16 +6,8 @@ import org.scalatest.{ Matchers, FlatSpecLike, BeforeAndAfterAll }
 import com.typesafe.config.ConfigFactory
 import scala.util.Random
 
-class RouterActorSpec extends TestKit(ActorSystem("RouterActorSpec",
-  ConfigFactory.parseString("""
-      akka.loggers = ["akka.testkit.TestEventListener"]
-      akka.stdout-loglevel = "OFF"
-      akka.loglevel = "OFF"
-    """)))
-    with ImplicitSender
-    with FlatSpecLike
-    with Matchers
-    with BeforeAndAfterAll {
+class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
+    with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
   import PingPongActor._
   import RouterActor._
 
