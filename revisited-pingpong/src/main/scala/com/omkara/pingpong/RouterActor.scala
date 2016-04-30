@@ -23,6 +23,8 @@ class RouterActor extends Actor with ActorLogging {
 
   var exceptionCaught: Option[Exception] = None
 
+  var unreachableMap = scala.collection.mutable.Map[ActorRef, Int]()
+
   def receive = {
 
     case Register => {
@@ -87,13 +89,22 @@ class RouterActor extends Actor with ActorLogging {
 
       exceptionCaught match {
 
+        // there is a possibility that both unreachable and unregistered have values
+        // however if UnreachableActorException is caught roles are getting reset anyway hence replying pining actor
+        // with UnregisteredActorException would be insignificant
         case Some(UnreachableActorException(unreachable)) => {
+
+          updateUnreachableMap(unreachable)
+
           currentActorWithPingRole ! UnreachableActorException(unreachable)
 
           exceptionCaught = None
         }
 
         case Some(UnregisteredActorException(unregistered)) => {
+          // content in unreachable map is insignificant outside UnreachableActorException handling
+          clearUnreachableMap
+
           currentActorWithPingRole ! UnregisteredActorException(unregistered)
           currentActorWithPingRole ! PongMessage(pongMessage, messageIdentifier)
 
@@ -101,6 +112,8 @@ class RouterActor extends Actor with ActorLogging {
         }
 
         case None => {
+          clearUnreachableMap
+
           currentActorWithPingRole ! PongMessage(pongMessage, messageIdentifier)
         }
       }
@@ -122,6 +135,8 @@ class RouterActor extends Actor with ActorLogging {
 
       log.info("RouterActor is resetting roles.")
 
+      unregisterActorsUnreachable3TimesInARow
+
       currentActorWithPingRole ! PongNow
 
       currentActorWithPingRole = Random shuffle (routees - currentActorWithPingRole) head
@@ -142,6 +157,28 @@ class RouterActor extends Actor with ActorLogging {
     }
 
   }
+
+  def updateUnreachableMap(unreachable: Set[ActorRef]) = {
+    // actors present in map but absent unreachable set must be removed from the map
+    // since we need to maintain map of only those actors that aren't reachable for three consecutive times
+    (unreachableMap.keySet diff unreachable).foreach { actor => unreachableMap -= actor }
+
+    // unreachable map is maintains (k,v) as (unreachable actor, number of consecutive times it has been found unreachable)
+    unreachable.foreach {
+      actor =>
+        if (!unreachableMap.contains(actor)) unreachableMap += (actor -> 1) else
+          unreachableMap(actor) += 1
+    }
+  }
+
+  def unregisterActorsUnreachable3TimesInARow = {
+    unreachableMap.foreach { actor => if (actor._2 >= 3) routees -= actor._1 }
+  }
+
+  def clearUnreachableMap = {
+    if (!unreachableMap.isEmpty) unreachableMap.clear
+  }
+
 }
 
 object RouterActor {

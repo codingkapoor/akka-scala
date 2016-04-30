@@ -122,15 +122,15 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
   it should "inform the pinging actor of unreachable ponging actors" in new ThreeRegisteredRoutees {
 
     router.currentActorWithPingRole = routee1.ref
-    router.repliesReceivedFrom += routee2.ref
+    router.repliesReceivedFrom = Set(routee2.ref)
 
     val unreachable = (router.routees - router.currentActorWithPingRole) diff router.repliesReceivedFrom
 
     routerRef ! StopWatchEnded
 
-    routee1.expectMsgPF() {
-      case UnreachableActorException(unreachable) =>
-    }
+    router.unreachableMap.contains(routee3.ref) shouldEqual true
+
+    routee1.expectMsg(UnreachableActorException(unreachable))
 
   }
 
@@ -143,19 +143,16 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     router.pongMessage = pongMessage
     router.messageIdentifier = identifier
 
-    router.repliesReceivedFrom += routee2.ref
-    router.repliesReceivedFrom += unregisteredRoutee.ref
+    router.repliesReceivedFrom = Set(routee2.ref, unregisteredRoutee.ref)
 
     val unregistered = router.repliesReceivedFrom diff (router.routees - router.currentActorWithPingRole)
 
     routerRef ! StopWatchEnded
 
-    routee1.expectMsgPF() {
-      case UnregisteredActorException(unregistered) =>
-    }
-    routee1.expectMsgPF() {
-      case PongMessage(pongMessage, messageIdentifier) =>
-    }
+    router.unreachableMap should have size 0
+
+    routee1.expectMsg(UnregisteredActorException(unregistered))
+    routee1.expectMsg(PongMessage(pongMessage, identifier))
 
   }
 
@@ -166,11 +163,36 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     router.pongMessage = pongMessage
     router.messageIdentifier = identifier
 
-    router.repliesReceivedFrom += routee2.ref
+    router.repliesReceivedFrom = Set(routee2.ref)
 
     routerRef ! StopWatchEnded
+
+    router.unreachableMap should have size 0
 
     routee1.expectMsg(PongMessage(pongMessage, identifier))
 
   }
+
+  it should "unregister routees that are unreachable for three or more times" in new ThreeRegisteredRoutees {
+    router.currentActorWithPingRole = routee1.ref
+    router.repliesReceivedFrom = Set(routee2.ref)
+
+    val unreachable = (router.routees - router.currentActorWithPingRole) diff router.repliesReceivedFrom
+
+    routerRef ! StopWatchEnded
+
+    routee1.expectMsg(UnreachableActorException(unreachable))
+
+    router.unreachableMap.contains(routee3.ref) shouldEqual true
+    
+    router.unreachableMap(routee3.ref) = 3
+
+    routerRef ! ResetRoles
+
+    routee1.expectMsg(PongNow)
+    routee2.expectMsg(PingNow)
+
+    router.routees.contains(routee3.ref) shouldEqual false
+  }
+
 }
