@@ -163,7 +163,7 @@ class RouterActor extends Actor with ActorLogging {
     // since we need to maintain map of only those actors that aren't reachable for three consecutive times
     (unreachableMap.keySet diff unreachable).foreach { actor => unreachableMap -= actor }
 
-    // unreachable map is maintains (k,v) as (unreachable actor, number of consecutive times it has been found unreachable)
+    // unreachable map maintains (k,v) as (unreachable actor, number of consecutive times it has been found unreachable)
     unreachable.foreach {
       actor =>
         if (!unreachableMap.contains(actor)) unreachableMap += (actor -> 1) else
