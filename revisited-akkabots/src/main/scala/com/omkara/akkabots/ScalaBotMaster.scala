@@ -1,10 +1,10 @@
 package com.omkara.akkabots
 
-import akka.actor.Actor
+import akka.actor.{ Actor, ActorLogging }
 import akka.actor.Props
 import scala.util.Random
 
-class ScalaBotMaster extends Actor {
+class ScalaBotMaster extends Actor with ActorLogging {
   import ScalaBotMaster._
   import ScalaBot._
 
@@ -16,7 +16,7 @@ class ScalaBotMaster extends Actor {
 
   def receive = {
     case StartChildBots => {
-      println("Master has started children bots with default FORWARD direction.")
+      log.info("Master has started children bots with default FORWARD direction.")
       context.children.foreach {
         child =>
           {
@@ -27,7 +27,7 @@ class ScalaBotMaster extends Actor {
     }
 
     case ChangeDirections => {
-      println("\nMaster has reassigned random directions.")
+      log.info("Master has reassigned random directions.")
       context.children.foreach {
         child =>
           {
@@ -38,7 +38,7 @@ class ScalaBotMaster extends Actor {
     }
 
     case StopChildBots =>
-      println("\nMaster has stopped children bots.")
+      log.info("Master has stopped children bots.")
       context.children.foreach {
         child =>
           {
@@ -51,8 +51,8 @@ class ScalaBotMaster extends Actor {
       context.system.shutdown()
 
     case RobotState(direction: Direction, moving: Boolean) => {
-      if (moving) println(s"${sender.path.name} is moving $direction.")
-      else println(s"${sender.path.name} has stopped.")
+      if (moving) log.info(s"${sender.path.name} is moving $direction.")
+      else log.info(s"${sender.path.name} has stopped.")
     }
   }
 
