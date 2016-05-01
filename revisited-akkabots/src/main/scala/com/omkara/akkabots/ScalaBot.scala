@@ -26,7 +26,7 @@ class ScalaBot extends Actor {
 }
 
 object ScalaBot {
-  val botProps = Props[ScalaBot]
+  val akkabotProps = Props[ScalaBot]
 
   sealed abstract class Direction
 

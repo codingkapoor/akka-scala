@@ -11,7 +11,7 @@ class ScalaBotMaster extends Actor with ActorLogging {
   val listOfDirections = List(FORWARD, BACKWARD, LEFT, RIGHT)
 
   for (indx <- 1 to 3) {
-    context.actorOf(botProps)
+    context.actorOf(akkabotProps)
   }
 
   def receive = {
