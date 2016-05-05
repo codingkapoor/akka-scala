@@ -1,6 +1,6 @@
 package com.omkara.pingpong
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor.{ ActorSystem, Kill, PoisonPill, Props }
 import akka.testkit.{ TestKit, TestActorRef, ImplicitSender, TestProbe }
 import org.scalatest.{ Matchers, FlatSpecLike, BeforeAndAfterAll }
 import com.typesafe.config.ConfigFactory
@@ -29,6 +29,9 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
 
     router.routees += routee1.ref
     router.routees += routee2.ref
+
+    routerRef.watch(routee1.ref)
+    routerRef.watch(routee2.ref)
   }
 
   trait ThreeRegisteredRoutees extends Router {
@@ -39,6 +42,10 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     router.routees += routee1.ref
     router.routees += routee2.ref
     router.routees += routee3.ref
+
+    routerRef.watch(routee1.ref)
+    routerRef.watch(routee2.ref)
+    routerRef.watch(routee3.ref)
   }
 
   override def afterAll {
@@ -184,25 +191,42 @@ class RouterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     routee1.expectMsg(UnreachableActorException(unreachable))
 
     router.unreachableMap.contains(routee3.ref) shouldEqual true
-    
+
     routerRef ! StopWatchEnded
 
     routee1.expectMsg(UnreachableActorException(unreachable))
 
     router.unreachableMap.contains(routee3.ref) shouldEqual true
-    
+
     routerRef ! StopWatchEnded
 
     routee1.expectMsg(UnreachableActorException(unreachable))
 
     router.unreachableMap.contains(routee3.ref) shouldEqual true
-    
+
     routerRef ! ResetRoles
 
     routee1.expectMsg(PongNow)
     routee2.expectMsg(PingNow)
 
     router.routees.contains(routee3.ref) shouldEqual false
+  }
+
+  it should "unregister actors that are stopped via 'PoisonPill'" in new TwoRegisteredRoutees {
+    router.routees.contains(routee1.ref) shouldEqual true
+
+    routee1.ref ! PoisonPill
+
+    router.routees.contains(routee1.ref) shouldEqual false
+  }
+
+  it should "unregister actors that are stopped via 'Kill'" in new TwoRegisteredRoutees {
+    router.routees.contains(routee1.ref) shouldEqual true
+
+    routee1.ref ! Kill
+    Thread sleep 100
+
+    router.routees.contains(routee1.ref) shouldEqual false
   }
 
 }

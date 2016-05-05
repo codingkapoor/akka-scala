@@ -2,13 +2,10 @@ package com.omkara.pingpong
 
 import scala.AnyVal
 import scala.util.Random
-
 import com.typesafe.config.ConfigFactory
-
-import akka.actor.ActorSystem
-
-import akka.testkit.{ ImplicitSender, TestFSMRef, TestKit }
+import akka.testkit.{ TestProbe, ImplicitSender, TestFSMRef, TestKit }
 import org.scalatest.{ BeforeAndAfterAll, Matchers, FlatSpecLike }
+import akka.actor.{ ActorSystem, Kill, PoisonPill }
 
 class PingPongActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
     with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
@@ -207,5 +204,23 @@ class PingPongActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFac
       fsmRef.stateName shouldEqual Inactive
 
     }
+
+  it should "send back a termination message to the watcher when stopped via 'PoisonPill'" in new Fsm {
+    val testProbe = TestProbe()
+    testProbe watch fsmRef
+
+    fsmRef ! PoisonPill
+
+    testProbe.expectTerminated(fsmRef)
+  }
+
+  it should "send back a termination message to the watcher when stopped via 'Kill'" in new Fsm {
+    val testProbe = TestProbe()
+    testProbe watch fsmRef
+
+    fsmRef ! Kill
+
+    testProbe.expectTerminated(fsmRef)
+  }
 
 }

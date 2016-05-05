@@ -30,8 +30,8 @@ class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     // MasterActor must always have the 'router' instance assigned before it could receive Terminate message
     master.router = testActor
 
-    masterRef ! InitiateTermination
-    expectMsg(Terminate)
+    masterRef ! InitiateSysTermination
+    expectMsg(TerminateSys)
   }
 
 }

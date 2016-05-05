@@ -1,8 +1,7 @@
 package com.omkara.pingpong
 
-import akka.actor.{ Actor, ActorLogging, ActorRef, Props }
+import akka.actor.{ Actor, ActorLogging, ActorRef, Props, Terminated }
 import scala.util.Random
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -30,7 +29,8 @@ class RouterActor extends Actor with ActorLogging {
     case Register => {
       routees += sender
       log.info("{} has been registered.", sender.path.name)
-
+      
+      context.watch(sender)
     }
 
     case Unregister => {
@@ -145,7 +145,7 @@ class RouterActor extends Actor with ActorLogging {
 
     }
 
-    case Terminate => {
+    case TerminateSys => {
 
       log.info("RouterActor is terminating actor system gracefully.")
 
@@ -154,6 +154,13 @@ class RouterActor extends Actor with ActorLogging {
       Thread sleep 1000
       context.system.shutdown()
 
+    }
+    
+    case Terminated(terminatedActorRef) => {
+      routees -= terminatedActorRef
+      log.info("Actor ${terminatedActorRef} which has been stopped is unregistered.")
+      
+      context.unwatch(terminatedActorRef)
     }
 
   }
@@ -192,5 +199,5 @@ object RouterActor {
 
   case object StopWatchEnded
 
-  case object Terminate
+  case object TerminateSys
 }
