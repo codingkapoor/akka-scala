@@ -85,6 +85,8 @@ class PingPongActor extends FSM[PingPongActor.State, PingPongActor.Data] with Ac
 
   }
 
+  initialize()
+
 }
 
 object PingPongActor {
