@@ -2,14 +2,15 @@ package com.omkara.pingpong
 
 import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
-
 import akka.testkit.{ TestKit, TestActorRef, ImplicitSender }
 import org.scalatest.{ FlatSpecLike, Matchers, BeforeAndAfterAll }
+import com.omkara.pingpong.PingPongSupervisorActor.StartPingPongActors
 
 class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
     with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
   import MasterActor._
   import RouterActor._
+  import PingPongSupervisorActor._
 
   trait Master {
     val masterRef = TestActorRef[MasterActor]
@@ -20,13 +21,17 @@ class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFacto
     TestKit.shutdownActorSystem(system)
   }
 
-  "MasterActor" should "create a RouterActor instance " +
-    "and provided number of PingPongActor instances" in new Master {
-      masterRef ! Initialize(2)
+  "MasterActor" should "create & ask PingPongSupervisorActor to start PingPongActor actors" in new Master {
+      masterRef ! InitializeSys
       expectNoMsg
     }
+  
+  it should "create & ask RouterActor to assign roles to PingPongActor actors" in new Master {
+    masterRef ! InitializeSys
+    expectNoMsg
+  }
 
-  it should "initiate actor system termination" in new Master {
+  it should "ask RouterActor to conclude as part of actor system termination" in new Master {
     // MasterActor must always have the 'router' instance assigned before it could receive Terminate message
     master.router = testActor
 
