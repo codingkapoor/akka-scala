@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import akka.testkit.{ TestKit, TestActorRef, ImplicitSender }
 import org.scalatest.{ FlatSpecLike, Matchers, BeforeAndAfterAll }
-import com.omkara.pingpong.PingPongSupervisorActor.StartPingPongActors
 
 class MasterActorSpec extends TestKit(ActorSystem("MasterActorSpec", ConfigFactory.load()))
     with ImplicitSender with FlatSpecLike with Matchers with BeforeAndAfterAll {
