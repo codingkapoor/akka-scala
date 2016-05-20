@@ -8,7 +8,7 @@ object PingPongApplication extends App {
   val system = ActorSystem("PingPongActorSystem")
   val master = system.actorOf(masterActorProps , "masterActor")
   
-  master ! Initialize(5)
+  master ! InitializeSys
   
   Thread sleep 5000
   

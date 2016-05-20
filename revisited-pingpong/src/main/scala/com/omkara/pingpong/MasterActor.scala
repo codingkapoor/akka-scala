@@ -6,22 +6,24 @@ class MasterActor extends Actor with ActorLogging {
   import MasterActor._
   import PingPongActor._
   import RouterActor._
+  import PingPongSupervisorActor._
 
   var router: ActorRef = _
+  var supervisor: ActorRef = _
 
   def receive = {
 
-    case Initialize(numberOfActorsToSpawn) => {
+    case InitializeSys => {
       log.info("MasterActor is instantiating a RouterActor instance.")
       router = context.actorOf(routerActorProps, "router-actor")
       
-      log.info("MasterActor is instantiating {} PingPongActors.", numberOfActorsToSpawn)
-      for (i <- 1 to numberOfActorsToSpawn)
-        context.actorOf(pingPongActorProps) ! SelfDiscover(router)
-        
+      log.info("MasterActor is instantiating PingPongSupervisorActor.")
+      supervisor = context.actorOf(pingPongSupervisorActorProps(router), "pingpong-supervisor-actor")
+      supervisor ! StartPingPongActors(5)
+      
       Thread sleep 1000
       
-      log.info("MasterActor is asking RouterActor to assign roles.")
+      log.info("MasterActor has asked RouterActor to assign roles.")
       router ! AssignRoles
     }
 
@@ -36,7 +38,7 @@ object MasterActor {
 
   val masterActorProps = Props[MasterActor]
 
-  case class Initialize(numberOfActorsToSpawn: Int)
+  case object InitializeSys
   case object InitiateSysTermination
 
 }
