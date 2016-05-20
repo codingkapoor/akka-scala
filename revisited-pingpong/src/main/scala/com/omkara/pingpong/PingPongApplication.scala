@@ -12,7 +12,7 @@ object PingPongApplication extends App {
   
   Thread sleep 5000
   
-  master ! InitiateSysTermination
+  master ! TerminateSys
   
   system.awaitTermination()
 

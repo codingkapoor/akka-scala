@@ -23,13 +23,19 @@ class MasterActor extends Actor with ActorLogging {
       
       Thread sleep 1000
       
-      log.info("MasterActor has asked RouterActor to assign roles.")
+      log.info("MasterActor is asking RouterActor to assign roles.")
       router ! AssignRoles
     }
 
-    case InitiateSysTermination => {
+    case TerminateSys => {
       log.info("MasterActor is initiating actor system termination.")
-      router ! TerminateSys
+      router ! Conclude
+      
+      Thread sleep 1000
+      
+      log.info("MasterActor is terminating actor system gracefully.")
+      context.system.shutdown()
+      
     }
   }
 }
@@ -39,6 +45,6 @@ object MasterActor {
   val masterActorProps = Props[MasterActor]
 
   case object InitializeSys
-  case object InitiateSysTermination
+  case object TerminateSys
 
 }

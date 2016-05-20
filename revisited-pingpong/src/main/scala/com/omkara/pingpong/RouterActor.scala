@@ -29,7 +29,7 @@ class RouterActor extends Actor with ActorLogging {
     case Register => {
       routees += sender
       log.info("{} has been registered.", sender.path.name)
-      
+
       context.watch(sender)
     }
 
@@ -145,21 +145,18 @@ class RouterActor extends Actor with ActorLogging {
 
     }
 
-    case TerminateSys => {
+    case Conclude => {
 
-      log.info("RouterActor is terminating actor system gracefully.")
-
+      log.info("RouterActor is asking PingPongActors " +
+        "to finish there unfinished jobs, unregister & move to Inactive state.")
       routees.foreach { _ ! Enough }
 
-      Thread sleep 1000
-      context.system.shutdown()
-
     }
-    
+
     case Terminated(terminatedActorRef) => {
       routees -= terminatedActorRef
       log.info("Actor ${terminatedActorRef} which has been stopped is unregistered.")
-      
+
       context.unwatch(terminatedActorRef)
     }
 
@@ -199,5 +196,5 @@ object RouterActor {
 
   case object StopWatchEnded
 
-  case object TerminateSys
+  case object Conclude
 }
