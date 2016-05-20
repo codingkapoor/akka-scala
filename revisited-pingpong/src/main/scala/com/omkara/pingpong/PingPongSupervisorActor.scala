@@ -2,7 +2,7 @@ package com.omkara.pingpong
 
 import akka.actor.{ Actor, ActorRef, ActorLogging, Props}
 
-class PingPongSupervisorActor(routerActor: ActorRef) extends Actor with ActorLogging {
+class PingPongSupervisorActor(val routerActor: ActorRef) extends Actor with ActorLogging {
   import PingPongSupervisorActor._
   import PingPongActor._
 
