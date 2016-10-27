@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object ExploreAkkaBuild extends Build {
+object AkkaScalaBuild extends Build {
     lazy val commonSettings = 
 	Seq (
 	    scalaVersion := "2.11.8",
@@ -13,8 +13,8 @@ object ExploreAkkaBuild extends Build {
 		)
 	)
 
-    lazy val explore_akka = 
-	Project(id = "explore-akka", base = file(".")) aggregate(revisited_akkabots, revisited_pingpong) settings(commonSettings: _*)
+    lazy val akka_scala = 
+	Project(id = "akka-scala", base = file(".")) aggregate(revisited_akkabots, revisited_pingpong) settings(commonSettings: _*)
 
     lazy val revisited_akkabots = 
 	Project(id = "revisited-akkabots", base = file("revisited-akkabots")) settings(commonSettings: _*)
